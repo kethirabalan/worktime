@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // HELPER PRIMITIVES
+    function isSignedIn() { return request.auth != null; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isOwner(ownerId) { return isSignedIn() && request.auth.uid == ownerId; }
+    
+    // VALIDATION HELPERS
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid']) &&
+             data.uid is string && data.uid.size() <= 128;
+    }
+
+    function isValidWorkspace(data) {
+      return data.keys().hasAll(['name', 'ownerId', 'createdAt']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.ownerId == request.auth.uid;
+    }
+
+    function isValidProject(data) {
+      return data.keys().hasAll(['workspaceId', 'name', 'createdAt']) &&
+             data.workspaceId is string &&
+             data.name is string && data.name.size() <= 100;
+    }
+
+    function isValidTask(data) {
+      return data.keys().hasAll(['workspaceId', 'projectId', 'title', 'status', 'priority', 'createdAt', 'updatedAt']) &&
+             data.workspaceId is string &&
+             data.projectId is string &&
+             data.title is string && data.title.size() <= 200 &&
+             data.status in ['TODO', 'IN_PROGRESS', 'DONE'] &&
+             data.priority in ['LOW', 'MEDIUM', 'HIGH'];
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['workspaceId', 'senderId', 'senderName', 'content', 'timestamp']) &&
+             data.workspaceId is string &&
+             data.senderId == request.auth.uid &&
+             data.content is string && data.content.size() <= 2000;
+    }
+
+    // COLLECTIONS
+    
+    // Users
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow create: if isSignedIn() && userId == request.auth.uid && isValidUser(incoming());
+      allow update: if isSignedIn() && userId == request.auth.uid && isValidUser(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'lastActive'])
+      );
+    }
+
+    // Workspaces
+    match /workspaces/{workspaceId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn(); // Simplified for demo, ideally check ownerId
+      allow create: if isSignedIn() && isValidWorkspace(incoming());
+      allow update: if isSignedIn() && isOwner(existing().ownerId) && isValidWorkspace(incoming());
+      allow delete: if isSignedIn() && isOwner(existing().ownerId);
+
+      // Projects
+      match /projects/{projectId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && isValidProject(incoming());
+        allow update: if isSignedIn() && isValidProject(incoming());
+      }
+
+      // Tasks
+      match /tasks/{taskId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && isValidTask(incoming());
+        allow update: if isSignedIn() && isValidTask(incoming());
+        allow delete: if isSignedIn();
+      }
+
+      // Messages
+      match /messages/{messageId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && isValidMessage(incoming());
+      }
+    }
+  }
+}

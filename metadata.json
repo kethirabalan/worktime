@@ -1,0 +1,6 @@
+{
+  "name": "WorkTime",
+  "description": "An AI-powered team collaboration platform combining task management, real-time chat, and workflow automation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["AI Task Generation", "Smart Kanban Board", "Real-time Collaboration", "Progress Analytics"]
+}

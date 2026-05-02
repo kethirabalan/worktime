@@ -1,20 +1,17 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+WorkTime
 
-# Run and deploy your AI Studio app
+Team Collaboration Platform
 
-This contains everything you need to run your app locally.
+WorkTime is a real-time collaboration tool designed to help teams manage tasks, communicate effectively, and track progress — all in one place.
 
-View your app in AI Studio: https://ai.studio/apps/3faf4980-f62b-4bc3-a478-6fbeba34cb08
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+✨ Features
+📋 Kanban Task Board
+Organize work with To Do, In Progress, and Done columns
+💬 Real-Time Team Chat
+Instant messaging powered by Firebase
+⚡ Live Updates
+Tasks and messages sync instantly across all users
+📊 Dashboard
+Track team progress and activity
+👥 Team Collaboration
+Assign tasks and manage workflows efficiently
